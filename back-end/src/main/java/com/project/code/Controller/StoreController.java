@@ -17,7 +17,7 @@ import com.project.code.Repo.StoreRepository;
 import com.project.code.Service.OrderService;
 
 @RestController
-@RequestMapping("/store")
+@RequestMapping
 public class StoreController {
 
     @Autowired
@@ -26,35 +26,30 @@ public class StoreController {
     @Autowired
     private OrderService orderService;
 
-    @PostMapping
-    public Map<String, String> addStore (@RequestBody Store store) {
-        Store savedStore = storeRepository.save ( store );
-        Map<String, String> map = new HashMap<> ();
-        map.put ( "message" , "Tienda agregada con éxito con id " + savedStore.getId () );
+    @PostMapping("/store")
+    public Map<String, String> addStore(@RequestBody Store store) {
+        Store savedStore = storeRepository.save(store);
+        Map<String, String> map = new HashMap<>();
+        map.put("message", "Tienda agregada con éxito con id " + savedStore.getId());
         return map;
     }
 
-    @GetMapping("validate/{storeId}")
-    public boolean validateStore (@PathVariable Long storeId) {
-        Store store = storeRepository.findByid ( storeId );
-        if (store != null) {
-            return true;
-        }
-        return false;
+    // Cumple el requerimiento: GET (validate/store/{id})
+    @GetMapping("validate/store/{id}")
+    public boolean validateStore(@PathVariable Long id) {
+        return storeRepository.existsById(id);
     }
 
+    // Cumple el requerimiento: Bloque try-catch capturando Exception
     @PostMapping("/placeOrder")
-    public Map<String, String> placeOrder (@RequestBody PlaceOrderRequestDTO placeOrderRequest) {
-
-        Map<String, String> map = new HashMap<> ();
+    public Map<String, String> placeOrder(@RequestBody PlaceOrderRequestDTO placeOrderRequest) {
+        Map<String, String> map = new HashMap<>();
         try {
-            orderService.saveOrder ( placeOrderRequest );
-            map.put ( "message" , "Pedido realizado con éxito" );
-        } catch (Error e) {
-            map.put ( "Error" , "" + e );
-
+            orderService.saveOrder(placeOrderRequest);
+            map.put("message", "Pedido realizado con éxito");
+        } catch (Exception e) { // Cambiado de 'Error' a 'Exception'
+            map.put("Error", e.getMessage());
         }
         return map;
     }
-
 }

@@ -21,45 +21,45 @@ import com.project.code.Repo.ReviewRepository;
 public class ReviewController {
 
     @Autowired
-    ReviewRepository reviewRepository;
+    private ReviewRepository reviewRepository;
 
     @Autowired
-    CustomerRepository customerRepository;
+    private CustomerRepository customerRepository;
 
+    // Cumple el requerimiento: GET /reviews/{storeId}/{productId} incluye nombres de clientes
     @GetMapping("/{storeId}/{productId}")
-    public Map<String, Object> getReviews (@PathVariable long storeId , @PathVariable long productId) {
-        Map<String, Object> map = new HashMap<> ();
+    public Map<String, Object> getReviews(@PathVariable Long storeId, @PathVariable Long productId) {
+        Map<String, Object> map = new HashMap<>();
 
-        // Corregido: Se especifica el genérico List<Review>
-        List<Review> reviews = reviewRepository.findByStoreIdAndProductId ( storeId , productId );
+        List<Review> reviews = reviewRepository.findByStoreIdAndProductId(storeId, productId);
+        List<Map<String, Object>> reviewsWithCustomerNames = new ArrayList<>();
 
-        List<Map<String, Object>> reviewsWithCustomerNames = new ArrayList<> ();
+        for (Review review : reviews) {
+            Map<String, Object> reviewMap = new HashMap<>();
+            reviewMap.put("review", review.getComment());
+            reviewMap.put("rating", review.getRating());
 
-        for ( Review review : reviews ) {
-            Map<String, Object> reviewMap = new HashMap<> ();
-            reviewMap.put ( "review" , review.getComment () );
-            reviewMap.put ( "rating" , review.getRating () );
-
-            // Corregido: Se usa findById() nativo de Spring y .orElse(null)
-            Customer customer = customerRepository.findById ( review.getCustomerId () ).orElse ( null );
+            // Búsqueda del cliente por su ID
+            Customer customer = customerRepository.findById(review.getCustomerId()).orElse(null);
 
             if (customer != null) {
-                reviewMap.put ( "customerName" , customer.getName () );
+                reviewMap.put("customerName", customer.getName());
             } else {
-                reviewMap.put ( "customerName" , "Desconocido" );
+                reviewMap.put("customerName", "Desconocido");
             }
 
-            reviewsWithCustomerNames.add ( reviewMap );
+            reviewsWithCustomerNames.add(reviewMap);
         }
 
-        map.put ( "reviews" , reviewsWithCustomerNames );
+        map.put("reviews", reviewsWithCustomerNames);
         return map;
     }
 
+    // Cumple el requerimiento: GET /reviews retorna todas las reseñas usando findAll()
     @GetMapping
-    public Map<String, Object> getAllReviews ( ) {
-        Map<String, Object> map = new HashMap<> ();
-        map.put ( "reviews" , reviewRepository.findAll () );
+    public Map<String, Object> getAllReviews() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("reviews", reviewRepository.findAll());
         return map;
     }
 }
